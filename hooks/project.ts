@@ -136,8 +136,15 @@ export const laneTitle = (p: Project, l: ProjectLane) => `${l.letter} · ${l.nam
 /** The sidebar title of the orchestrator's session: `Orchestrator (Shop)`. */
 export const orchestratorTitle = (p: Project) => `Orchestrator (${p.name})`
 
+/**
+ * A lane's own git worktree and branch: a folder beside the project's (`shop-a`, which still counts as the project's
+ * folder) on the branch `lane-a`, so lanes never edit the same working copy.
+ */
+export const laneWorktree = (p: Project, l: ProjectLane) => ({ folder: `${p.root.replace(/[\\/]+$/, '')}-${l.letter.toLowerCase()}`, branch: `lane-${l.letter.toLowerCase()}` })
+
 /** What a lane is told when it is given its lane. */
 export function laneBrief(p: Project, l: ProjectLane, moved = false): string {
+  const tree = laneWorktree(p, l)
   return [
     `You are lane ${l.letter} (${l.name}) of the project "${p.name}". The orchestrator works in ${p.root}; this was set up from the Lanes pane.`,
     ...(moved ? [`This session moves to ${p.root} when this turn ends (the project's folder); until then use absolute paths.`] : []),
@@ -146,6 +153,12 @@ export function laneBrief(p: Project, l: ProjectLane, moved = false): string {
     `  @lane ${l.letter} | ${l.name} | <feature / work item> | <status> | <next job> | <MM-DD>`,
     'Status starts with Working, Ready to merge, Blocked, Done, Idle or Paused. Write "(needs the user\'s decision)" in the next job while you wait for the user.',
     `Handoffs go to ${p.handoffDir}${sepOf(p.handoffDir)}HANDOFF-${l.letter}.md when the pane asks for one.${p.rules ? ` ${p.rules}` : ''}`,
+    // A project with its own rules (p.rules) has its own git workflow; the others get one branch per lane.
+    ...(p.rules
+      ? []
+      : [
+          `Git: never edit files in ${p.root}, the orchestrator's folder. If it is a git repository, work in your own worktree and branch: once, run \`git -C "${p.root}" worktree add "${tree.folder}" -b ${tree.branch}\` (if it already exists, use it), then move this session to ${tree.folder} and work only there. Commit only on ${tree.branch}. When a piece of work is finished and committed, set your status to Ready to merge and stop: the orchestrator merges it. After a merge, run \`git merge\` with the main branch in your folder to stay current.`,
+        ]),
     '',
     'Reply with one line confirming, then wait for your first task.',
   ].join('\n')
@@ -159,6 +172,11 @@ export function orchestratorBrief(p: Project): string {
     '',
     `The board is ${p.board}: one \`@lane\` line per lane, which the /lanes pane reads live. Keep every line current when you hand out, merge, pause or resume work (feature, status starting with Working / Ready to merge / Blocked / Done / Idle / Paused, next job, date).`,
     `Your own handoff file is ${p.orchestratorHandoff}.${p.rules ? ` ${p.rules}` : ''}`,
+    ...(p.rules
+      ? []
+      : [
+          `Git: each lane works in its own worktree and branch (${p.lanes.map(l => `${l.letter}: ${laneWorktree(p, l).folder} on ${laneWorktree(p, l).branch}`).join(', ')}), never in ${p.root}. You keep ${p.root} on the main branch and are the only one who merges: when a lane's status says Ready to merge, merge its branch into the main branch, then tell the other lanes to merge the main branch into theirs.`,
+        ]),
     '',
     'Reply with one line confirming.',
   ].join('\n')

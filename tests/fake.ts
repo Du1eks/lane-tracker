@@ -26,14 +26,16 @@ export const fileAt = (fake: Fake, path: string) => Object.entries(fake.files).f
  * The engine and the desktop app's session tools as the plugin sees them: files in memory, a list of sessions
  * (`self` among them, which list_sessions leaves out as the app does), and every message and prompt recorded.
  */
-export function fakeEngine(on: On, opts: { self: FakeSession; others: FakeSession[]; files?: Record<string, string>; now?: () => number; readOnly?: string[] }): Fake {
+export function fakeEngine(on: On, opts: { self: FakeSession; others: FakeSession[]; files?: Record<string, string>; now?: () => number; readOnly?: string[]; locked?: string[] }): Fake {
   const fake: Fake = { sent: [], prompts: [], statuses: [], files: { ...(opts.files ?? {}) }, mtimes: {}, sessions: [opts.self, ...opts.others], moves: [], titles: {} }
   const now = opts.now ?? (() => Date.now())
   const reply = (x: unknown) => ({ value: { content: [{ type: 'text', text: typeof x === 'string' ? x : JSON.stringify(x) }], isError: false } })
   const meta = (s: FakeSession) => ({ sessionId: s.sessionId, title: s.title, cwd: s.cwd ?? 'C:\\projects\\x', model: s.model ?? 'claude-sonnet-5-5', effort: s.effort ?? 'high', isRunning: s.isRunning ?? true })
   const find = (id: unknown) => (id === 'self' ? opts.self : fake.sessions.find(s => s.sessionId === id))
 
-  on('fs.read', async (_$, e) => (e.path in fake.files ? { value: fake.files[e.path] as string } : { deny: 'no such file' }))
+  // A locked file exists but cannot be read, as on Windows while another program holds it.
+  on('fs.read', async (_$, e) => (e.path in fake.files && !(opts.locked ?? []).includes(e.path) ? { value: fake.files[e.path] as string } : { deny: 'no such file' }))
+  on('fs.exists', async (_$, e) => ({ value: e.path in fake.files }))
   on('fs.write', async (_$, e) => {
     // A folder the user may not write (`/home`): only files directly in it are refused, not its subfolders' files.
     const path = posix(e.path)

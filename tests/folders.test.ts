@@ -208,3 +208,22 @@ test('an existing project with an unwritable board moves it inside on its next r
   expect(await ui.find({ type: 'Text', text: /Cannot read the board/ })).toBeUndefined()
   await ui.unmount()
 })
+
+test('a board that exists but cannot be read for a moment is never overwritten', async ($, on) => {
+  const board = '@lane A | Backend | API | Working: auth | Tests | 10-14\n'
+  const p = shop()
+  mock.store(on, { projects: [p] })
+  mock.clock(on, { now: 1_000_000 })
+  const fake = fakeEngine(on, {
+    self: { sessionId: 'local_orch', title: 'orchestrator', cwd: p.root },
+    others: [{ sessionId: 'local_back', title: 'A' }],
+    files: { [p.board]: board },
+    locked: [p.board],
+  })
+  await $.command.run({ command: 'lanes' } as never)
+  const ui = await $.ui.mount(PANE)
+  expect(fake.files[p.board]).toBe(board) // not replaced by the empty template
+  expect(Object.keys(fake.files).some(k => k.includes('.lanes'))).toBe(false) // and not moved inside the project
+  expect(await ui.find({ type: 'Text', text: /Cannot read the board C:\\work\\shop-LANES\.md/})).toBeDefined()
+  await ui.unmount()
+})

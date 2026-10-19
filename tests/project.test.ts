@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { boardTemplate, membership, missingBoardLines, newProject } from '../hooks/project'
+import { boardTemplate, laneBrief, membership, missingBoardLines, newProject, orchestratorBrief } from '../hooks/project'
 import { handoffFile } from '../hooks/parse'
 import { LEGACY } from './legacy'
 
@@ -62,4 +62,12 @@ test('with no session id, only the project folder itself (or a sibling worktree)
   expect(membership([home], self('', '', '/home/me'))).toMatchObject({ role: 'orchestrator' })
   expect(membership([home], self('', '', '/home/me/python-projects/llm'))).toBeNull()
   expect(membership([home], self('local_x', 'Orchestrator', '/home/me/other'))).toBeNull()
+})
+
+test('a project with its own rules keeps its own git workflow: no per-lane branch rule is added', async () => {
+  const lane = LEGACY.lanes[0]
+  if (!lane) throw new Error('fixture has no lanes')
+  expect(laneBrief(LEGACY, lane)).not.toMatch(/worktree add/)
+  expect(orchestratorBrief(LEGACY)).not.toMatch(/only one who merges/)
+  expect(laneBrief({ ...LEGACY, rules: '' }, lane)).toMatch(/worktree add .* -b lane-a/)
 })

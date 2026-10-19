@@ -36,6 +36,11 @@ test('/lanes in a new session sets up a project: lanes, names, sessions, board a
   expect(fake.sent[0]?.text).toMatch(/You are lane A \(Backend\) of the project "Shop"/)
   expect(fake.sent[0]?.text).toMatch(/C:\\work\\shop-LANES\.md/)
   expect(fake.prompts.at(-1)).toMatch(/You are the orchestrator of the project "Shop"/)
+  // Each lane gets its own worktree and branch beside the project folder; only the orchestrator merges.
+  expect(fake.sent[0]?.text).toMatch(/git -C "C:\\work\\shop" worktree add "C:\\work\\shop-a" -b lane-a/)
+  expect(fake.sent[0]?.text).toMatch(/Commit only on lane-a/)
+  expect(fake.prompts.at(-1)).toMatch(/A: C:\\work\\shop-a on lane-a, B: C:\\work\\shop-b on lane-b/)
+  expect(fake.prompts.at(-1)).toMatch(/You keep C:\\work\\shop on the main branch and are the only one who merges/)
   // Now this session shows the project.
   expect(await ui.find({ type: 'Text', text: /^Shop/ })).toBeDefined()
   expect(fake.statuses.at(-1)).toBe('Lanes ○A ○B ○C')

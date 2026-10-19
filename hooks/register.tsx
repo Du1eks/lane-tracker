@@ -427,7 +427,11 @@ async function openSetup($: EngineInterface, mode: 'new' | 'edit') {
 /** Writes the board, or adds the lines it lacks. */
 async function writeBoard($: EngineInterface, p: Project, now: number) {
   const existing = await $.fs.read(p.board).catch(() => undefined)
-  if (existing === undefined) return $.fs.write(p.board, boardTemplate(p, today(now)))
+  if (existing === undefined) {
+    // A board that exists but cannot be read now (locked, offline) is left alone: the template would wipe its lines.
+    if (await $.fs.exists(p.board).catch(() => true)) return
+    return $.fs.write(p.board, boardTemplate(p, today(now)))
+  }
   const extra = missingBoardLines(existing, p, today(now))
   if (extra.length > 0) await $.fs.write(p.board, `${existing.replace(/\s*$/, '')}\n${extra.join('\n')}\n`)
 }
@@ -1085,7 +1089,7 @@ export const register: Register = on => {
                   {/* The bar has a line of its own and the numbers go under it, so a narrow pane never squeezes them. */}
                   {Svg ? (
                     <Box flexDirection="column" paddingLeft={2}>
-                      <Svg key={`bar-${s.lane}-${m.state}-${m.hot}-${s.percent}`} source={barSvg(s.percent ?? 0, TONE[fill(s)] ?? 'gray', m)} alt={`context ${s.percent ?? 0}%`} isInteractive />
+                      <Svg key={`bar-${s.lane}-${m.state}-${m.hot}-${s.percent}`} source={barSvg(s.percent ?? 0, TONE[fill(s)] ?? 'gray', m)} alt={`context ${s.percent ?? 0}%`} width={226} height={14} isInteractive />
                       <Text wrap="truncate-end">{numbers}</Text>
                     </Box>
                   ) : (

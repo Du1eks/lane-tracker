@@ -120,8 +120,8 @@ test('desktop: each session row draws its animated bar, the cards draw the worki
   expect(svgs).toHaveLength(5) // a bar for the orchestrator, A and B; A's card spinner; B's card flag
   expect(svgs.filter(x => x.props.alt === 'working')).toHaveLength(1)
   expect(svgs.filter(x => x.props.alt === 'needs you')).toHaveLength(1)
-  // The bars take the pane's width rather than a fixed one, so a narrow pane does not stretch the rows.
-  expect(svgs.filter(x => /^context/.test(String(x.props.alt))).every(x => x.props.width === undefined)).toBe(true)
+  // Each bar has its own size: without a height the app gives its frame a tall default and centres the bar in empty space.
+  expect(svgs.filter(x => /^context/.test(String(x.props.alt))).every(x => x.props.height === 14)).toBe(true)
   const sources = svgs.map(x => String(x.props.source))
   expect(sources.some(x => /attributeName="x"/.test(x))).toBe(true) // A works: its bar shimmers
   expect(sources.some(x => /stroke="#EF9F27"/.test(x))).toBe(true) // B needs you: its bar has the ring

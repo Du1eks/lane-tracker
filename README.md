@@ -30,6 +30,7 @@ Every session of the project also gets a status line: `Lanes ●A ⚑B ◆C ○D
 4. **Press Create & brief the lanes.** The plugin:
    - writes the board, one `@lane` line per lane;
    - sends each lane session a brief: its letter, its job and how to keep its board line current;
+   - tells each lane to work in its own git worktree and branch (`shop-a` on `lane-a`, `shop-b` on `lane-b`, …), never in the orchestrator's folder, so lanes never mix their edits; only the orchestrator merges, when a lane says Ready to merge. A project with its own rules keeps its own git workflow;
    - briefs this session as the orchestrator;
    - renames the sessions after their role, such as `Orchestrator (Shop)` and `A · Backend (Shop)`.
 5. **Give the lanes their first tasks** from the orchestrator. As they work, each lane updates its board line, and every session's pane follows within seconds.
