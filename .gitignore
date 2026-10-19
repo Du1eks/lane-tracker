@@ -1,0 +1,4 @@
+# This PC's own teams from before projects existed: local paths and session ids, never shared.
+seed-projects.json
+# Written by Claude Code at every load.
+.claude-plugin/types/

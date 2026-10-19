@@ -1,0 +1,8 @@
+{
+  "name": "lane-tracker",
+  "version": "1.2.0",
+  "description": "Per-project lanes for parallel Claude Code sessions: the orchestrator and its lane sessions see what each lane works on, its next job, its model and context use, with handoff & restart, sleep and wake buttons. /lanes in any other session sets up a project or joins one as a new lane.",
+  "author": { "name": "Du1eks" },
+  "keywords": ["sessions", "orchestrator", "lanes", "parallel", "status"],
+  "types": "./types/index.d.ts"
+}

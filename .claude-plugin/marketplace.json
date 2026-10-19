@@ -1,0 +1,12 @@
+{
+  "name": "du1eks-mods",
+  "owner": { "name": "Du1eks" },
+  "description": "Claude Code mods by Du1eks.",
+  "plugins": [
+    {
+      "name": "lane-tracker",
+      "source": "./",
+      "description": "Per-project lanes for parallel Claude Code sessions: what each lane works on, its next job, context use, and handoff/sleep/wake buttons."
+    }
+  ]
+}
